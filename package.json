@@ -1,0 +1,44 @@
+{
+  "name": "odin-inventory-app",
+  "version": "1.0.0",
+  "description": "An Inventory management app for an imaginary store. Developed as part of the Node.js course at The Odin Project.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "node --env-file=.env --watch index.js",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hussein-m-kandil/odin-inventory-app.git"
+  },
+  "keywords": [
+    "node.js",
+    "express.js",
+    "express-validator",
+    "postgresql",
+    "node-postgres",
+    "back-end",
+    "web",
+    "development"
+  ],
+  "author": "Hussein Kandil",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hussein-m-kandil/odin-inventory-app/issues"
+  },
+  "homepage": "https://github.com/hussein-m-kandil/odin-inventory-app#readme",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-validator": "^7.2.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@stylistic/eslint-plugin-js": "^2.9.0",
+    "eslint": "^9.13.0",
+    "globals": "^15.11.0"
+  }
+}
