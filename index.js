@@ -1,8 +1,15 @@
 const express = require('express');
+const db = require('./db/queries.js');
 
 const app = express();
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  try {
+    const allBooks = await db.readAllBooks();
+    console.log(allBooks);
+  } catch (error) {
+    console.log(error);
+  }
   res.send('Inventory App');
 });
 
