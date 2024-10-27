@@ -29,7 +29,7 @@
         <tr>
           <td><%= book.isbn %></td>
           <td>
-            <a href="/<%= book['book_id'] %>"><%= book.book %></a>
+            <a href="/<%= book.book_id %>"><%= book.book %></a>
           </td>
           <td><%= book.language %></td>
           <td><%= book.authors %></td>
@@ -37,11 +37,11 @@
           <td><%= book.pages %></td>
           <td><%= book.price %>$</td>
           <td><%= book.stock_count %></td>
-          <td><%= book["updated_at"] %></td>
+          <td><%= book.updated_at %></td>
           <td>
-            <a href="/<%= book['book_id'] %>/edit">Edit</a>
+            <a href="/<%= book.book_id %>/edit">Edit</a>
             |
-            <a href="/<%= book['book_id'] %>/delete">Delete</a>
+            <a href="/<%= book.book_id %>/delete">Delete</a>
           </td>
         </tr>
         <% }) %>

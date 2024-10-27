@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= locals.book?.book || error %></title>
+  </head>
+  <body>
+    <p><a href="/">Home</a></p>
+    <% if (locals.error) { %>
+    <p class="error"><%= error %></p>
+    <% } else { %>
+    <h1><%= book.book %></h1>
+    <p>
+      <span><strong>ISBN</strong>:</span><span><%= book.isbn %></span>
+    </p>
+    <p>
+      <span><strong>Language</strong>:</span>
+      <span><%= book.language %></span>
+    </p>
+    <p>
+      <span><strong>Author/s</strong>:</span>
+      <span><%= book.authors %></span>
+    </p>
+    <p>
+      <span><strong>Genre/s</strong>:</span>
+      <span><%= book.genres %></span>
+    </p>
+    <p>
+      <span><strong>Pages</strong>:</span>
+      <span><%= book.pages %></span>
+    </p>
+    <p>
+      <span><strong>Price</strong>:</span>
+      <span><%= book.price %>$</span>
+    </p>
+    <p>
+      <span><strong>Stock</strong>:</span>
+      <span><%= book.stock_count %></span>
+    </p>
+    <p>
+      <span><strong>Last modified</strong>:</span>
+      <span><%= book.updated_at %></span>
+    </p>
+    <p>
+      <a href="/<%= book.book_id %>/edit">Edit</a>
+      |
+      <a href="/<%= book.book_id %>/delete">Delete</a>
+    </p>
+    <% } %>
+  </body>
+</html>
