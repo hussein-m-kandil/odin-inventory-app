@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p><a href="/new">Add new book</a></p>
+    <% if (locals.error) { %>
+    <p class="error"><%= error %></p>
+    <% } else if (Array.isArray(locals.books) && books.length > 0) { %>
+    <table width="100%" border="1">
+      <thead>
+        <th>ISBN</th>
+        <th>Title</th>
+        <th>Language</th>
+        <th>Author/s</th>
+        <th>Genre/s</th>
+        <th>Pages</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Last modified</th>
+        <th>Control</th>
+      </thead>
+      <tbody>
+        <% books.forEach((book) => { %>
+        <tr>
+          <td><%= book.isbn %></td>
+          <td>
+            <a href="/<%= book['book_id'] %>"><%= book.book %></a>
+          </td>
+          <td><%= book.language %></td>
+          <td><%= book.authors %></td>
+          <td><%= book.genres %></td>
+          <td><%= book.pages %></td>
+          <td><%= book.price %>$</td>
+          <td><%= book.stock_count %></td>
+          <td><%= book["updated_at"] %></td>
+          <td>
+            <a href="/<%= book['book_id'] %>/edit">Edit</a>
+            |
+            <a href="/<%= book['book_id'] %>/delete">Delete</a>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p>There are no books.</p>
+    <% } %>
+  </body>
+</html>

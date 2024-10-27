@@ -1,17 +1,17 @@
 const express = require('express');
-const db = require('./db/queries.js');
+const booksRouter = require('./routes/books-router.js');
 
 const app = express();
 
-app.get('/', async (req, res) => {
-  try {
-    const allBooks = await db.readAllBooks();
-    console.log(allBooks);
-  } catch (error) {
-    console.log(error);
-  }
-  res.send('Inventory App');
-});
+const logger = (req, res, next) => {
+  console.log(`${req.method}: ${req.originalUrl}`);
+  next();
+};
+
+app.set('view engine', 'ejs');
+
+app.use(logger);
+app.use('/', booksRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
