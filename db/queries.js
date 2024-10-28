@@ -46,23 +46,27 @@ module.exports = {
     return (await pool.query(query)).rows;
   },
 
-  async readAllAuthors() {
-    const query = { text: 'SELECT * FROM authors' };
+  async readAllRows(table) {
+    const query = { text: `SELECT * FROM ${table}` };
     return (await pool.query(query)).rows;
   },
 
-  async readAuthor(id) {
+  async readRow(table, column, id) {
     const query = {
-      text: 'SELECT * FROM authors WHERE author_id = $1',
+      text: `SELECT * FROM ${table} WHERE ${column} = $1`,
       values: [id],
     };
     return (await pool.query(query)).rows[0];
   },
 
-  async createAuthor(author) {
+  async createRow(table, columns, values) {
+    const preparedColumns = Array.isArray(columns)
+      ? columns.join(',')
+      : columns;
+    const preparedValues = Array.isArray(values) ? values.join(',') : values;
     const query = {
-      text: 'INSERT INTO authors (author) VALUES ($1)',
-      values: [author],
+      text: `INSERT INTO ${table} (${preparedColumns}) VALUES ($1)`,
+      values: [preparedValues],
     };
     return await pool.query(query);
   },

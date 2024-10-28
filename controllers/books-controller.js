@@ -54,4 +54,31 @@ module.exports = {
       }
     }
   },
+
+  async getEditBook(req, res) {
+    res.locals.title = EDIT_BOOK_TITLE;
+    const inquiries = [
+      ['book', db.readBook, req.params.id],
+      ['authors', db.readAllRows, 'authors'],
+      ['genres', db.readAllRows, 'genres'],
+    ];
+    const dbResults = {};
+    for (let i = 0; i < inquiries.length; i++) {
+      const [inquiry, queryMethod, ...queryArgs] = inquiries[i];
+      const [error, result] = await queryDB(
+        res,
+        BOOK_FORM_VIEW,
+        queryMethod,
+        ...queryArgs
+      );
+      if (error) return; // Quit: queryDB has ended the request with 500
+      dbResults[inquiry] = result;
+    }
+    if (!dbResults.book) {
+      return res
+        .status(400)
+        .render(BOOK_FORM_VIEW, { error: 'No such a book!' });
+    }
+    res.render(BOOK_FORM_VIEW, dbResults);
+  },
 };
