@@ -6,9 +6,7 @@
   <body>
     <h1><%= title %></h1>
     <p><a href="/books/new">Add new book</a></p>
-    <% if (locals.error) { %>
-    <p class="error"><%= error %></p>
-    <% } else if (Array.isArray(locals.books) && books.length > 0) { %>
+    <% if (Array.isArray(locals.books) && books.length > 0) { %>
     <table width="100%" border="1">
       <thead>
         <th>ISBN</th>

@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%- include('partials/meta', { title: locals.book?.book || error }) %>
+    <%- include('partials/meta', { title: book }) %>
   </head>
   <body>
     <p><a href="/">Home</a></p>
-    <% if (locals.error) { %>
-    <p class="error"><%= error %></p>
-    <% } else { %>
     <h1><%= book.book %></h1>
     <p>
       <span><strong>ISBN</strong>:</span><span><%= book.isbn %></span>
@@ -45,6 +42,5 @@
       |
       <a href="/books/<%= book.book_id %>/delete">Delete</a>
     </p>
-    <% } %>
   </body>
 </html>

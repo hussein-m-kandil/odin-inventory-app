@@ -1,3 +1,4 @@
+const AppError = require('../errors/app-generic-error.js');
 const pool = require('./pool.js');
 
 const createGeneralQuery = (where, limit) => {
@@ -30,25 +31,34 @@ const createGeneralQuery = (where, limit) => {
 `;
 };
 
+const queryDB = async (query) => {
+  try {
+    return await pool.query(query);
+  } catch (error) {
+    console.log(error);
+    throw new AppError('Could not get any data, try again later!', 500);
+  }
+};
+
 module.exports = {
   async readBook(id) {
     const query = {
       text: createGeneralQuery('WHERE books.book_id = $1', 'LIMIT 1'),
       values: [id],
     };
-    return (await pool.query(query)).rows[0];
+    return (await queryDB(query)).rows[0];
   },
 
   async readAllBooks() {
     const query = {
       text: createGeneralQuery(),
     };
-    return (await pool.query(query)).rows;
+    return (await queryDB(query)).rows;
   },
 
   async readAllRows(table) {
     const query = { text: `SELECT * FROM ${table}` };
-    return (await pool.query(query)).rows;
+    return (await queryDB(query)).rows;
   },
 
   async readRow(table, column, id) {
@@ -56,7 +66,7 @@ module.exports = {
       text: `SELECT * FROM ${table} WHERE ${column} = $1`,
       values: [id],
     };
-    return (await pool.query(query)).rows[0];
+    return (await queryDB(query)).rows[0];
   },
 
   async createRow(table, columns, values) {
@@ -68,6 +78,6 @@ module.exports = {
       text: `INSERT INTO ${table} (${preparedColumns}) VALUES ($1)`,
       values: [preparedValues],
     };
-    return await pool.query(query);
+    return await queryDB(query);
   },
 };
