@@ -33,42 +33,75 @@ const createGeneralQuery = (where, limit) => {
 
 const queryDB = async (query) => {
   try {
-    return await pool.query(query);
+    return [null, await pool.query(query)];
   } catch (error) {
     console.log(error);
-    throw new AppError('Could not get any data, try again later!', 500);
+    if (error.code === '23505') {
+      // So, it is an unique_violation error
+      return [error];
+    }
+    throw new AppError('Mission failed! Try again later.', 500);
   }
 };
 
 module.exports = {
+  /**
+   * @param {number | string} id
+   */
   async readBook(id) {
     const query = {
       text: createGeneralQuery('WHERE books.book_id = $1', 'LIMIT 1'),
       values: [id],
     };
-    return (await queryDB(query)).rows[0];
+    const [error, result] = await queryDB(query);
+    return error || result.rows[0];
   },
 
   async readAllBooks() {
     const query = {
       text: createGeneralQuery(),
     };
-    return (await queryDB(query)).rows;
+    const [error, result] = await queryDB(query);
+    return error || result.rows;
   },
 
-  async readAllRows(table) {
-    const query = { text: `SELECT * FROM ${table}` };
-    return (await queryDB(query)).rows;
+  /**
+   * orderBy example: `'col' || 'col DESC' || ['col1', 'col2'] || ['col1 ASC', 'col2 DESC']`
+   *
+   * @param {string} table
+   * @param {string | string[] | null} orderBy
+   * @param {boolean?} desc
+   */
+  async readAllRows(table, orderBy) {
+    let orderByStr;
+    if (orderBy) {
+      orderByStr = ' ORDER BY ';
+      orderByStr += Array.isArray(orderBy) ? orderBy.join(', ') : orderBy;
+    }
+    const query = { text: `SELECT * FROM ${table}${orderByStr || ''}` };
+    const [error, result] = await queryDB(query);
+    return error || result.rows;
   },
 
+  /**
+   * @param {string} table
+   * @param {string} column
+   * @param {number | string} id
+   */
   async readRow(table, column, id) {
     const query = {
       text: `SELECT * FROM ${table} WHERE ${column} = $1`,
       values: [id],
     };
-    return (await queryDB(query)).rows[0];
+    const [error, result] = await queryDB(query);
+    return error || result.rows[0];
   },
 
+  /**
+   * @param {string} table
+   * @param {string | string[] | null} columns
+   * @param {any | any[] | null} values
+   */
   async createRow(table, columns, values) {
     const preparedColumns = Array.isArray(columns)
       ? columns.join(',')
@@ -78,6 +111,7 @@ module.exports = {
       text: `INSERT INTO ${table} (${preparedColumns}) VALUES ($1)`,
       values: [preparedValues],
     };
-    return await queryDB(query);
+    const [error, result] = await queryDB(query);
+    return error || result;
   },
 };

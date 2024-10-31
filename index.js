@@ -9,21 +9,15 @@ const VIEWS_DIR = path.join(process.cwd(), 'views');
 
 const app = express();
 
-const logger = (req, res, next) => {
+const logReq = (req, res, next) => {
   console.log(`${req.method}: ${req.originalUrl}`);
   next();
 };
 
-app.set('views', VIEWS_DIR);
-app.set('view engine', 'ejs');
-
-app.use(logger);
-app.use(express.static(PUBLIC_DIR));
-
-app.all('/', (req, res) => res.redirect('/books'));
-
-app.use('/books', booksRouter);
-app.use('/(authors|genres)', authorsGenresRouter);
+const addUrlToResLocals = (req, res, next) => {
+  res.locals.url = req.originalUrl;
+  next();
+};
 
 const appErrorHandler = (error, req, res, next) => {
   console.log(error);
@@ -35,6 +29,19 @@ const appErrorHandler = (error, req, res, next) => {
     message: error.message,
   });
 };
+
+app.set('views', VIEWS_DIR);
+app.set('view engine', 'ejs');
+
+app.use(logReq);
+app.use(addUrlToResLocals);
+app.use(express.static(PUBLIC_DIR));
+app.use(express.urlencoded({ extended: true }));
+
+app.all('/', (req, res) => res.redirect('/books'));
+
+app.use('/books', booksRouter);
+app.use('/(authors|genres)', authorsGenresRouter);
 
 app.use(appErrorHandler);
 

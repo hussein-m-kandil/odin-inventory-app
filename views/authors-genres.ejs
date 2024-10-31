@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('partials/meta', {title}) %>
+  </head>
+  <body>
+    <a href="/">home</a>
+    <h1><%= title %></h1>
+    <% const dataName = url.split('/')[1] %>
+    <p>
+      <a href="<%= url %>/new">Add new <%= dataName.slice(0, -1) %></a>
+    </p>
+    <% if (Array.isArray(locals.data) && data.length > 0) { %>
+    <ul>
+      <% data.forEach((entry) => { %>
+      <li>
+        <%= entry %> [<a href="<%= url %>/edit">edit</a> |
+        <a href="<%= url %>/delete">delete</a>]
+      </li>
+      <% }) %>
+    </ul>
+    <% } else { %>
+    <p>There are no <%= dataName %> yet.</p>
+    <% } %>
+  </body>
+</html>

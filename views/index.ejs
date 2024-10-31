@@ -5,7 +5,10 @@
   </head>
   <body>
     <h1><%= title %></h1>
-    <p><a href="/books/new">Add new book</a></p>
+    <p>
+      <a href="/authors">Visit authors</a>, <a href="/genres">genres</a>, or
+      <a href="/books/new">add new book</a>.
+    </p>
     <% if (Array.isArray(locals.books) && books.length > 0) { %>
     <table width="100%" border="1">
       <thead>

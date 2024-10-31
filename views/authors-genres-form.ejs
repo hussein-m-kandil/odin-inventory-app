@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('partials/meta', { title }) %>
+  </head>
+  <body>
+    <a href="/">home</a> / <% const backUrl = url.split('/').slice(0, -1); %>
+    <a href="/<%= backUrl.join('') %>"><%= backUrl.at(-1) %></a>
+    <h1><%= title %></h1>
+    <form action="<%= url %>" method="post">
+      <p>
+        <label for="name">Name: </label>
+        <input
+          type="text"
+          name="name"
+          id="name"
+          autocomplete="on"
+          value="<%= locals.data?.name || '' %>"
+        />
+        <br />
+        <% if (Array.isArray(locals.errors) && errors.length > 0) { %>
+        <span class="error"><%= errors[0].msg %></span>
+        <% } %>
+      </p>
+      <button type="submit">Submit</button>
+    </form>
+  </body>
+</html>
