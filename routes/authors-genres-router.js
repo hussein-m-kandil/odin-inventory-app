@@ -6,10 +6,10 @@ const router = Router();
 router.get('/', authorsGenresController.getAll);
 router.get('/new', authorsGenresController.getCreate);
 router.post('/new', authorsGenresController.postCreate);
-// router.get('/:id/edit', authorsController.getEdit);
-// router.post('/:id/edit', authorsController.postEdit);
-// router.get('/:id/delete', authorsController.getDelete);
-// router.post('/:id/delete', authorsController.postDelete);
-// router.get('/:id', authorsController.getOne);
+router.get('/:id/edit', authorsGenresController.getEdit);
+router.post('/:id/edit', authorsGenresController.postEdit);
+router.get('/:id/delete', authorsGenresController.getDelete);
+router.post('/:id/delete', authorsGenresController.postDelete);
+// TODO: router.get('/:id/books', authorsGenresController.getBooks);
 
 module.exports = router;

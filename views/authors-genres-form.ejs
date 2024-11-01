@@ -4,7 +4,8 @@
     <%- include('partials/meta', { title }) %>
   </head>
   <body>
-    <a href="/">home</a> / <% const backUrl = url.split('/').slice(0, -1); %>
+    <a href="/">home</a> / <% const urlWithoutId = url.replace(/\/\d+/, ''),
+    backUrl = urlWithoutId.split('/').slice(0, -1); %>
     <a href="/<%= backUrl.join('') %>"><%= backUrl.at(-1) %></a>
     <h1><%= title %></h1>
     <form action="<%= url %>" method="post">
@@ -16,6 +17,7 @@
           id="name"
           autocomplete="on"
           value="<%= locals.data?.name || '' %>"
+          autofocus
         />
         <br />
         <% if (Array.isArray(locals.errors) && errors.length > 0) { %>

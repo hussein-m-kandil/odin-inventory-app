@@ -6,16 +6,18 @@
   <body>
     <a href="/">home</a>
     <h1><%= title %></h1>
-    <% const dataName = url.split('/')[1] %>
+    <% const dataName = url.split('/')[1], entityName = dataName.slice(0, -1);
+    %>
     <p>
-      <a href="<%= url %>/new">Add new <%= dataName.slice(0, -1) %></a>
+      <a href="<%= url %>/new">Add new <%= entityName %></a>
     </p>
     <% if (Array.isArray(locals.data) && data.length > 0) { %>
     <ul>
       <% data.forEach((entry) => { %>
       <li>
-        <%= entry %> [<a href="<%= url %>/edit">edit</a> |
-        <a href="<%= url %>/delete">delete</a>]
+        <% const id = entry[`${entityName}_id`], name = entry[entityName]; %>
+        <%= name %> [<a href="<%= url %>/<%= id %>/edit">edit</a> |
+        <a href="<%= url %>/<%= id %>/delete">delete</a>]
       </li>
       <% }) %>
     </ul>

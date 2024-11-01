@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('partials/meta', title) %>
+  </head>
+  <body>
+    <a href="/">home</a> /
+    <a href="<%= url.replace(/(\/\d+\/delete).*/, '') %>">
+      <%= url.split('/')[1] %>
+    </a>
+    <h1><%= title %></h1>
+    <% if (Array.isArray(locals.errors) && errors.length > 0) { %>
+    <span class="error"><%= errors[0].msg %></span>
+    <% } else { %>
+    <p>Do you want to delete &quot;<%= item %>&quot;?</p>
+    <form method="post">
+      <button type="submit">Yes, Delete!</button>
+    </form>
+    <% } %>
+  </body>
+</html>
