@@ -4,104 +4,125 @@
     <%- include('partials/meta', { title }) %>
   </head>
   <body>
-    <%- url.length > 1 ? include('partials/navbar', { url }) : '' %>
-    <h1><%= title %></h1>
-    <form
-      id="search-filter-form"
-      action="<%= url.length > 1 ? url : '' %>/search"
-    >
+    <header>
+      <%- url.length > 1 ? include('partials/navbar', { url }) : '' %>
+      <h1><%= title %></h1>
+      <form
+        id="search-filter-form"
+        action="<%= url.length > 1 ? url : '' %>/search"
+      >
+        <p>
+          <input
+            type="text"
+            name="q"
+            placeholder="Search by title or ISBN"
+            value="<%= locals.q || '' %>"
+          />
+          &nbsp;
+          <button type="submit" class="btn-sm">Search</button>
+        </p>
+        <p class="orderby">
+          <strong>Order by:</strong>
+          <label for="ob-title">
+            <input type="radio" name="orderby" id="ob-title" value="book"
+            <%-locals.orderby==='book'?'checked':''%> /> Title
+          </label>
+          &nbsp;
+          <label for="ob-addition">
+            <input type="radio" name="orderby" id="ob-addition"
+            value="created_at"
+            <%-!locals.orderby||locals.orderby==='created_at'?'checked':''%> />
+            Addition
+          </label>
+          <label for="ob-modification">
+            <input type="radio" name="orderby" id="ob-modification"
+            value="updated_at" <%-locals.orderby==='updated_at'?'checked':''%>
+            /> Modification
+          </label>
+          &nbsp;
+          <label for="desc-order">
+            <input type="checkbox" name="desc_order" id="desc-order"
+            <%-locals.desc_order?'checked':''%> /> Descending
+          </label>
+          &nbsp;
+          <button type="submit" class="btn-sm">Reorder</button>
+        </p>
+      </form>
       <p>
-        <input
-          type="text"
-          name="q"
-          placeholder="Search by title or ISBN"
-          value="<%= locals.q || '' %>"
-        />
-        <button type="submit" class="btn-sm">Search</button>
+        <strong>
+          Take a look at the
+          <a href="/books"><em>books</em></a
+          >, <a href="/authors"><em>authors</em></a
+          >, <a href="/genres"><em>genres</em></a
+          >, <a href="/languages"><em>languages</em></a
+          >, or <a href="/books/new"><em>add new book</em></a
+          >.
+        </strong>
       </p>
+    </header>
+    <main>
+      <% if (Array.isArray(locals.books) && books.length > 0) { %>
       <p>
-        <strong>Order by:</strong>
-        <input type="radio" name="orderby" id="ob-title" value="book" <%-
-        locals.orderby === 'book' ? 'checked' : '' %> />
-        <label for="ob-title">Title&nbsp;</label>
-        <input type="radio" name="orderby" id="ob-addition" value="created_at"
-        <%-!locals.orderby || locals.orderby === 'created_at'?'checked':''%> />
-        <label for="ob-addition">Addition&nbsp;</label>
-        <input type="radio" name="orderby" id="ob-modification"
-        value="updated_at" <%- locals.orderby === 'updated_at' ? 'checked' : ''
-        %> />
-        <label for="ob-modification">Modification&nbsp;</label>
-        &nbsp; <input type="checkbox" name="desc_order" id="desc-order" <%-
-        locals.desc_order ? 'checked' : '' %> />
-        <label for="desc-order">Descending&nbsp;</label>
-        &nbsp;
-        <button type="submit" class="btn-sm">Reorder</button>
+        <strong>Note</strong>: This site is <em>just for practicing</em> what I
+        have learned in back-end web development with
+        <em> Node.js, Express.js, and PostgreSQL </em>. Hence,
+        <strong> the database repopulates itself </strong> with one or more
+        books to avoid a reviewer faced with an empty web app.
       </p>
-    </form>
-    <p>
-      Take a look at
-      <a href="/books">books</a>, <a href="/authors">authors</a>,
-      <a href="/genres">genres</a>, <a href="/languages">languages</a>, or
-      <a href="/books/new">add new book</a>.
-    </p>
-    <% if (Array.isArray(locals.books) && books.length > 0) { %>
-    <p>
-      <strong>Note</strong>: This site is <em>just for practicing</em> what I
-      have learned in back-end web development with
-      <em> Node.js, Express.js, and PostgreSQL </em>. Hence,
-      <strong> the database repopulates itself </strong> with one or more books
-      to avoid a reviewer faced with an empty web app.
-    </p>
-    <table width="100%" border="1">
-      <thead>
-        <th>ISBN</th>
-        <th>Title</th>
-        <% if (books[0].languages) { %>
-        <th>Language</th>
-        <% } %> <% if (books[0].authors) { %>
-        <th>Author/s</th>
-        <% } %> <% if (books[0].genres) { %>
-        <th>Genre/s</th>
-        <% } %>
-        <th>Pages</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Last modified</th>
-        <th colspan="2">Control</th>
-      </thead>
-      <tbody>
-        <% books.forEach((book) => { %>
-        <tr>
-          <td><%= book.isbn %></td>
-          <td>
-            <a href="/books/<%= book.book_id %>"><%= book.book %></a>
-          </td>
-          <% if (book.languages) { %>
-          <td><%= book.languages %></td>
-          <% } %> <% if (book.authors) { %>
-          <td><%= book.authors %></td>
-          <% } %> <% if (book.genres) { %>
-          <td><%= book.genres %></td>
-          <% } %>
-          <td><%= book.pages %></td>
-          <td><%= book.price %>$</td>
-          <td><%= book.stock_count %></td>
-          <td>
-            <%= new Date(book.updated_at).toLocaleString("hc", { hour12: true,
-            hourCycle: "h12", timeStyle: "short", dateStyle: "medium" }) %>
-          </td>
-          <td>
-            <a href="/books/<%= book.book_id %>/edit">Edit</a>
-          </td>
-          <td>
-            <a href="/books/<%= book.book_id %>/delete">Delete</a>
-          </td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
-    <% } else { %>
-    <p>There are no books.</p>
-    <% } %>
+      <div class="table-wrapper">
+        <table width="100%" border="1">
+          <thead>
+            <th>ISBN</th>
+            <th>Title</th>
+            <% if (books[0].languages) { %>
+            <th>Language</th>
+            <% } %> <% if (books[0].authors) { %>
+            <th>Author/s</th>
+            <% } %> <% if (books[0].genres) { %>
+            <th>Genre/s</th>
+            <% } %>
+            <th>Pages</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Last modified</th>
+            <th colspan="2">Control</th>
+          </thead>
+          <tbody>
+            <% books.forEach((book) => { %>
+            <tr>
+              <td><%= book.isbn %></td>
+              <td>
+                <a href="/books/<%= book.book_id %>"><%= book.book %></a>
+              </td>
+              <% if (book.languages) { %>
+              <td><%= book.languages %></td>
+              <% } %> <% if (book.authors) { %>
+              <td><%= book.authors %></td>
+              <% } %> <% if (book.genres) { %>
+              <td><%= book.genres %></td>
+              <% } %>
+              <td><%= book.pages %></td>
+              <td><%= book.price %>$</td>
+              <td><%= book.stock_count %></td>
+              <td>
+                <%= new Date(book.updated_at).toLocaleString("hc", { hour12:
+                true, hourCycle: "h12", timeStyle: "short", dateStyle: "medium"
+                }) %>
+              </td>
+              <td>
+                <a href="/books/<%= book.book_id %>/edit">Edit</a>
+              </td>
+              <td>
+                <a href="/books/<%= book.book_id %>/delete">Delete</a>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <p>There are no books.</p>
+      <% } %>
+    </main>
   </body>
 </html>
