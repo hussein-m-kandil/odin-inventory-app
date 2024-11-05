@@ -1,16 +1,19 @@
 const db = require('../db/queries.js');
 const queryDB = require('../utils/query-db.js');
 const AppGenericError = require('../errors/app-generic-error.js');
-const { body, param, validationResult } = require('express-validator');
+const { idValidators } = require('../middlewares/validators.js');
+const { body, validationResult } = require('express-validator');
+const {
+  capitalize,
+  titleize,
+  genCommaSepStrList,
+} = require('../utils/string-formatters.js');
 
 const MAX_NAME_LEN = 255;
+const BOOKS_VIEW = 'index';
 const ALL_ROWS_VIEW = 'authors-genres';
 const FORM_VIEW = 'authors-genres-form';
 const DELETE_FORM_VIEW = 'delete-form';
-
-const capitalize = (str) => {
-  return str ? `${str[0].toUpperCase()}${str.slice(1).toLowerCase()}` : '';
-};
 
 const firstTextFromUrl = (url, singularize = false) => {
   const firstText = url.split('/')[1];
@@ -29,19 +32,11 @@ const genDeleteFormTitle = (url) => {
   return `Delete ${firstTextFromUrl(url, true)}`;
 };
 
-const idValidators = [
-  param('id').isInt(),
-  (req, res, next) => {
-    return validationResult(req).isEmpty() ? next() : next('route');
-  },
-];
-
 const getReadOrDelByIdArgs = (req, res) => {
-  const entityName = firstTextFromUrl(req.baseUrl, true);
-  const table = `${entityName}s`;
+  res.locals.entityName = firstTextFromUrl(req.baseUrl, true);
+  const table = `${res.locals.entityName}s`;
   const { id } = req.params;
-  res.locals.entityName = entityName;
-  return [table, `${entityName}_id`, id];
+  return [table, `${res.locals.entityName}_id`, id];
 };
 
 const readRawByIdFromDB = queryDB(
@@ -174,5 +169,26 @@ module.exports = {
     redirectOrShowError(DELETE_FORM_VIEW, (req) => {
       return { item: firstTextFromUrl(req.baseUrl, true) };
     }),
+  ],
+
+  getBooks: [
+    ...idValidators,
+    readRawByIdFromDB,
+    queryDB('books', db.readFilteredBooks, (req, res) => {
+      res.locals.entityName = firstTextFromUrl(req.baseUrl, true);
+      const table = `${res.locals.entityName}s`;
+      const column = `${res.locals.entityName}_id`;
+      const value = req.params.id;
+      return [table, column, value];
+    }),
+    (req, res) => {
+      const { entityName, dbResult, books } = res.locals;
+      res.locals.title = titleize(`${dbResult[entityName]} Books`);
+      books.forEach((b) => {
+        b.authors = genCommaSepStrList(Object.values(b.authors));
+        b.genres = genCommaSepStrList(Object.values(b.genres));
+      });
+      res.render(BOOKS_VIEW);
+    },
   ],
 };

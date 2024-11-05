@@ -4,10 +4,7 @@
     <%- include('partials/meta', title) %>
   </head>
   <body>
-    <a href="/">home</a> /
-    <a href="<%= url.replace(/(\/\d+\/delete).*/, '') %>">
-      <%= url.split('/')[1] %>
-    </a>
+    <%- include('partials/navbar', { url }) %>
     <h1><%= title %></h1>
     <% if (Array.isArray(locals.errors) && errors.length > 0) { %>
     <span class="error"><%= errors[0].msg %></span>

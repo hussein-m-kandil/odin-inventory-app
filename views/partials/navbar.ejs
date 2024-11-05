@@ -1,0 +1,7 @@
+<nav>
+  <a href="/">home</a>
+  <% if (locals.url?.split('/').length > 2) { %> / <% const urlWithoutId =
+  url.replace(/\/\d+/, ''), backUrl = urlWithoutId.split('/').slice(0, -1); %>
+  <a href="/<%= backUrl.join('') %>"><%= backUrl.at(-1) %></a>
+  <% } %>
+</nav>

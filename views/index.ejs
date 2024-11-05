@@ -4,6 +4,7 @@
     <%- include('partials/meta', { title }) %>
   </head>
   <body>
+    <%-locals.url?.split('/').length > 2 ? include('partials/navbar',{url}):''%>
     <h1><%= title %></h1>
     <p>
       <a href="/authors">Visit authors</a>, <a href="/genres">genres</a>, or

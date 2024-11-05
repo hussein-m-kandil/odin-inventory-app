@@ -4,7 +4,7 @@
     <%- include('partials/meta', {title}) %>
   </head>
   <body>
-    <a href="/">home</a>
+    <%- include('partials/navbar', { url }) %>
     <h1><%= title %></h1>
     <% const dataName = url.split('/')[1], entityName = dataName.slice(0, -1);
     %>
@@ -16,8 +16,10 @@
       <% data.forEach((entry) => { %>
       <li>
         <% const id = entry[`${entityName}_id`], name = entry[entityName]; %>
-        <%= name %> [<a href="<%= url %>/<%= id %>/edit">edit</a> |
-        <a href="<%= url %>/<%= id %>/delete">delete</a>]
+        <strong><%= name %></strong> --
+        <a href="<%= url %>/<%= id %>/edit">edit</a>,
+        <a href="<%= url %>/<%= id %>/delete">delete</a>, or
+        <a href="<%= url %>/<%= id %>/books">see all its books</a>.
       </li>
       <% }) %>
     </ul>

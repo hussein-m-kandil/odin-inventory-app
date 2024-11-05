@@ -4,13 +4,11 @@
     <%- include('partials/meta', { title }) %>
   </head>
   <body>
-    <a href="/">home</a> / <% const urlWithoutId = url.replace(/\/\d+/, ''),
-    backUrl = urlWithoutId.split('/').slice(0, -1); %>
-    <a href="/<%= backUrl.join('') %>"><%= backUrl.at(-1) %></a>
+    <%- include('partials/navbar', { url }) %>
     <h1><%= title %></h1>
     <form action="<%= url %>" method="post">
       <p>
-        <label for="name">Name: </label>
+        <label for="name"><strong>Name:</strong></label>
         <input
           type="text"
           name="name"

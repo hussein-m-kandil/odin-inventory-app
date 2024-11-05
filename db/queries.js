@@ -1,7 +1,7 @@
 const AppError = require('../errors/app-generic-error.js');
 const pool = require('./pool.js');
 
-const createGeneralQuery = (where, limit) => {
+const generateGeneralQuery = (where, limit) => {
   return `
     SELECT books.book_id,
             book,
@@ -57,16 +57,25 @@ module.exports = {
    */
   async readBook(id) {
     const query = {
-      text: createGeneralQuery('WHERE books.book_id = $1', 'LIMIT 1'),
+      text: generateGeneralQuery('WHERE books.book_id = $1', 'LIMIT 1'),
       values: [id],
     };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows[0];
   },
 
+  async readFilteredBooks(filterTable, filterColumn, filterValue) {
+    const query = {
+      text: generateGeneralQuery(`WHERE ${filterTable}.${filterColumn} = $1`),
+      values: [filterValue],
+    };
+    const [error, result] = await queryDBCatchError(query);
+    return error || result.rows;
+  },
+
   async readAllBooks() {
     const query = {
-      text: createGeneralQuery(),
+      text: generateGeneralQuery(),
     };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows;
