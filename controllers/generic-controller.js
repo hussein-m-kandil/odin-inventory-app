@@ -9,10 +9,9 @@ const {
   genCommaSepStrList,
 } = require('../utils/string-formatters.js');
 
-const MAX_NAME_LEN = 255;
 const BOOKS_VIEW = 'index';
-const ALL_ROWS_VIEW = 'authors-genres';
-const FORM_VIEW = 'authors-genres-form';
+const ALL_ROWS_VIEW = 'generic-list';
+const FORM_VIEW = 'generic-form';
 const DELETE_FORM_VIEW = 'delete-form';
 
 const firstTextFromUrl = (url, singularize = false) => {
@@ -57,8 +56,15 @@ const nameFieldValidators = [
     .trim()
     .notEmpty()
     .withMessage('Name is required!')
-    .isLength({ max: MAX_NAME_LEN })
-    .withMessage(`Name can't contain more than ${MAX_NAME_LEN} character!`),
+    .custom((value, { req }) => {
+      const maxLen = firstTextFromUrl(req.baseUrl) === 'languages' ? 127 : 255;
+      if (value.length > maxLen) {
+        throw new AppGenericError(
+          `Name can't contain more than ${maxLen} character!`
+        );
+      }
+      return true;
+    }),
   (req, res, next) => {
     const validationErrors = validationResult(req);
     if (!validationErrors.isEmpty()) {

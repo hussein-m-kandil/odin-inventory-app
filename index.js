@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const booksRouter = require('./routes/books-router.js');
-const authorsGenresRouter = require('./routes/authors-genres-router.js');
+const genericRouter = require('./routes/generic-router.js');
 const AppGenericError = require('./errors/app-generic-error.js');
 
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.all('/', (req, res) => res.redirect('/books'));
 
 app.use('/books', booksRouter);
-app.use('/(authors|genres)', authorsGenresRouter);
+app.use('/(authors|genres|languages)', genericRouter);
 
 app.use(appErrorHandler);
 

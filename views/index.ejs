@@ -7,7 +7,8 @@
     <%-locals.url?.split('/').length > 2 ? include('partials/navbar',{url}):''%>
     <h1><%= title %></h1>
     <p>
-      <a href="/authors">Visit authors</a>, <a href="/genres">genres</a>, or
+      <a href="/authors">Visit authors</a>, <a href="/genres">genres</a>,
+      <a href="/languages">languages</a>, or
       <a href="/books/new">add new book</a>.
     </p>
     <% if (Array.isArray(locals.books) && books.length > 0) { %>
