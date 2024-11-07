@@ -1,3 +1,5 @@
+<% const findErrMsg = (path) => (locals.errors?.find((e) => e.path ===
+path)?.msg) || '' %>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -38,52 +40,73 @@
     </script>
   </head>
   <body>
-    <a href="/">Home</a>
+    <%- include('partials/navbar', { url }) %>
     <h1><%= title %></h1>
     <form action="/books/<%= book['book_id'] %>/edit" method="post">
       <p>
-        <label for="title"> <strong>Title</strong> </label>:
-        <input name="book" id="title" value="<%= locals.book?.book || '' %>" />
+        <label for="title"><strong>Title:</strong></label>
+        <input
+          name="book"
+          id="title"
+          value="<%= locals.book?.book || '' %>"
+          autofocus
+        />
+        <br />
+        <span class="error"><%= findErrMsg("book") %></span>
       </p>
       <p>
-        <label for="isbn"> <strong>ISBN</strong> </label>:
+        <label for="isbn"><strong>ISBN:</strong></label>
         <input name="isbn" id="isbn" value="<%= locals.book?.isbn || '' %>" />
+        <br />
+        <span class="error"><%= findErrMsg("isbn") %></span>
       </p>
       <p>
-        <label for="language"> <strong>Language</strong> </label>:
-        <input
-          name="language"
-          id="language"
-          value="<%= locals.book?.language || '' %>"
-        />
-      </p>
-      <p>
-        <label for="pages"> <strong>Pages</strong> </label>:
-        <input
-          name="pages"
-          id="pages"
-          value="<%= locals.book?.pages || '' %>"
-        />
-      </p>
-      <p>
-        <label for="price"> <strong>Price</strong> </label>:
-        <input
-          name="price"
-          id="price"
-          value="<%= locals.book?.price || '' %>$"
-        />
-      </p>
-      <p>
-        <label for="stock"> <strong>Stock</strong> </label>:
+        <label for="stock"><strong>Stock:</strong></label>
         <input
           name="stock_count"
           id="stock"
           value="<%= locals.book?.stock_count || '' %>"
         />
+        <br />
+        <span class="error"><%= findErrMsg("stock_count") %></span>
+      </p>
+      <p>
+        <label for="pages"><strong>Pages:</strong></label>
+        <input
+          name="pages"
+          id="pages"
+          value="<%= locals.book?.pages || '' %>"
+        />
+        <br />
+        <span class="error"><%= findErrMsg("pages") %></span>
+      </p>
+      <p>
+        <label for="price"><strong>Price ($):</strong></label>
+        <input
+          name="price"
+          id="price"
+          value="<%= locals.book?.price || '' %>"
+        />
+        <br />
+        <span class="error"><%= findErrMsg("price") %></span>
+      </p>
+      <p>
+        <label for="language"><strong>Language:</strong></label>
+        <select name="language_id" id="language">
+          <% languages.forEach(({language_id, language}) => { %>
+          <%if(book.language_id === language_id){%>
+          <option selected value="<%= language_id %>"><%= language %></option>
+          <%}else{%>
+          <option value="<%= language_id %>"><%= language %></option>
+          <%}%> <%})%>
+        </select>
+        <br />
+        <span class="error"><%= findErrMsg("language") %></span>
       </p>
       <p id="book-authors-title">
         <strong>Author/s:</strong>
       </p>
+      <div class="error"><%= findErrMsg("authors") %></div>
       <ul id="book-authors" aria-labelledby="book-authors-title">
         <%Object.entries(locals.book?.authors||{}).forEach(([id,author])=>{%>
         <li>
@@ -98,27 +121,10 @@
         </li>
         <% }) %>
       </ul>
-      <p>
-        <label for="author-options">
-          <strong>Choose Author</strong>
-        </label>
-        <select name="author-options" id="author-options">
-          <% authors.forEach(({ author_id, author }) => { %>
-          <option value="<%= author_id %>"><%= author %></option>
-          <% }) %>
-        </select>
-        <button
-          type="button"
-          onclick="addCheckboxOption(this, 'author-options', 'book-authors', 'authors', 'author-')"
-        >
-          Add
-        </button>
-        <br />
-        <a href="/authors/new">Can't find an author?</a>
-      </p>
       <p id="book-genres-title">
         <strong>Genre/s:</strong>
       </p>
+      <div class="error"><%= findErrMsg("genres") %></div>
       <ul id="book-genres" aria-labelledby="book-genres-title">
         <% Object.entries(locals.book?.genres || {}).forEach(([id, genre])=>{%>
         <li>
@@ -133,25 +139,54 @@
         </li>
         <% }) %>
       </ul>
-      <p>
-        <label for="genre-options">
-          <strong>Choose Genre</strong>
-        </label>
-        <select name="genre-options" id="genre-options">
-          <% genres.forEach(({ genre_id, genre }) => { %>
-          <option value="<%= genre_id %>"><%= genre %></option>
-          <% }) %>
-        </select>
-        <button
-          type="button"
-          onclick="addCheckboxOption(this, 'genre-options', 'book-genres', 'genres', 'genre-')"
-        >
-          Add
-        </button>
-        <br />
-        <a href="/genres/new">Can't find a genre?</a>
-      </p>
       <button type="submit">Submit</button>
     </form>
+
+    <br />
+    <hr />
+    <br />
+
+    <p>
+      <label for="author-options">
+        <strong>Choose Author</strong>
+      </label>
+      &nbsp;
+      <select name="author_options" id="author-options">
+        <% authors.forEach(({ author_id, author }) => { %>
+        <option value="<%= author_id %>"><%= author %></option>
+        <% }) %>
+      </select>
+      &nbsp;
+      <button
+        type="button"
+        onclick="addCheckboxOption(this, 'author-options', 'book-authors', 'authors', 'author-')"
+      >
+        Add
+      </button>
+      &nbsp;
+      <a href="/authors/new">Can't find an author?</a>
+    </p>
+
+    <p>
+      <label for="genre-options">
+        <strong>Choose Genre</strong>
+        &nbsp;
+      </label>
+      &nbsp;
+      <select name="genre_options" id="genre-options">
+        <% genres.forEach(({ genre_id, genre }) => { %>
+        <option value="<%= genre_id %>"><%= genre %></option>
+        <% }) %>
+      </select>
+      &nbsp;
+      <button
+        type="button"
+        onclick="addCheckboxOption(this, 'genre-options', 'book-genres', 'genres', 'genre-')"
+      >
+        Add
+      </button>
+      &nbsp;
+      <a href="/genres/new">Can't find a genre?</a>
+    </p>
   </body>
 </html>

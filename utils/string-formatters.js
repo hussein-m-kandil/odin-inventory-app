@@ -4,7 +4,9 @@
  * @returns {string}
  */
 const capitalize = (str) => {
-  return str ? `${str[0].toUpperCase()}${str.slice(1).toLowerCase()}` : '';
+  return str
+    ? `${String(str)[0].toUpperCase()}${str.slice(1).toLowerCase()}`
+    : '';
 };
 
 /**
@@ -13,11 +15,18 @@ const capitalize = (str) => {
  * @returns {string}
  */
 const titleize = (str) => {
-  return str
+  return String(str)
     .split(' ')
     .map((word) => capitalize(word))
     .join(' ');
 };
+
+/**
+ * Returns same string without any hyphens.
+ * @param {string} str
+ * @returns {string}
+ */
+const removeHyphens = (str) => String(str).replaceAll('-', '');
 
 /**
  * Generate a single string contains a comma separated list of the given string array.
@@ -37,5 +46,6 @@ const genCommaSepStrList = (strings) => {
 module.exports = {
   capitalize,
   titleize,
+  removeHyphens,
   genCommaSepStrList,
 };

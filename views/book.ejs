@@ -4,7 +4,7 @@
     <%- include('partials/meta', { title: book }) %>
   </head>
   <body>
-    <p><a href="/">Home</a></p>
+    <%-include('partials/navbar',{url:url.split('/').slice(0, -1).join('/')})%>
     <h1><%= book.book %></h1>
     <p>
       <span><strong>ISBN</strong>:</span><span><%= book.isbn %></span>

@@ -12,6 +12,13 @@
       <a href="/books/new">add new book</a>.
     </p>
     <% if (Array.isArray(locals.books) && books.length > 0) { %>
+    <p>
+      <strong>Note</strong>: This site is <em>just for practicing</em> what I
+      have learned in back-end web development with
+      <em> Node.js, Express.js, and PostgreSQL </em>. Hence,
+      <strong> the database repopulates itself </strong> with one or more books
+      to avoid a reviewer faced with an empty web app.
+    </p>
     <table width="100%" border="1">
       <thead>
         <th>ISBN</th>

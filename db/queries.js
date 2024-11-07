@@ -1,4 +1,5 @@
 const AppError = require('../errors/app-generic-error.js');
+const populateDB = require('./populate-db.js');
 const pool = require('./pool.js');
 
 const generateGeneralQuery = (where, limit) => {
@@ -6,7 +7,8 @@ const generateGeneralQuery = (where, limit) => {
     SELECT books.book_id,
             book,
             isbn,
-            language,
+            languages.language,
+            languages.language_id,
             json_object_agg(DISTINCT authors.author_id, authors.author) AS authors,
             json_object_agg(DISTINCT genres.genre_id, genres.genre) AS genres,
             pages,
@@ -26,7 +28,7 @@ const generateGeneralQuery = (where, limit) => {
       JOIN genres
         ON books_genres.genre_id = genres.genre_id
   ${where || ''}
-  GROUP BY books.book_id, language
+  GROUP BY books.book_id, languages.language, languages.language_id
   ${limit || ''}
 `;
 };
@@ -47,7 +49,7 @@ const queryDBCatchError = async (query) => {
       const message = 'It cannot be deleted because it is in use by a book!';
       return [new AppError(message, 400)];
     }
-    throw new AppError('Mission failed! Try again later.', 500);
+    throw new AppError('Oops, something went wrong! Try again later.', 500);
   }
 };
 
@@ -74,11 +76,22 @@ module.exports = {
   },
 
   async readAllBooks() {
-    const query = {
-      text: generateGeneralQuery(),
-    };
-    const [error, result] = await queryDBCatchError(query);
-    return error || result.rows;
+    const query = { text: generateGeneralQuery() };
+    // Try to read all books, if no books try to populate the db, then repeat... 5 times
+    for (let i = 0; i < 5; i++) {
+      const [error, result] = await queryDBCatchError(query);
+      if (error) return error;
+      else if (result.rows.length > 0) return result.rows;
+      else {
+        try {
+          await populateDB();
+        } catch (error) {
+          console.log(error);
+          break;
+        }
+      }
+    }
+    return [];
   },
 
   /**
@@ -87,13 +100,15 @@ module.exports = {
    * @param {any | any[] | null} values
    */
   async createRow(table, columns, values) {
-    const preparedColumns = Array.isArray(columns)
-      ? columns.join(',')
-      : columns;
-    const preparedValues = Array.isArray(values) ? values.join(',') : values;
+    const preparedCols = Array.isArray(columns) ? columns : [columns];
+    const preparedValues = Array.isArray(values) ? values : [values];
+    const params = preparedValues.map((_, i) => `$${i + 1}`);
     const query = {
-      text: `INSERT INTO ${table} (${preparedColumns}) VALUES ($1)`,
-      values: [preparedValues],
+      text: `
+      INSERT INTO ${table} (${preparedCols.join(',')})
+           VALUES (${params.join(',')})
+    `,
+      values: [...preparedValues],
     };
     const [error, result] = await queryDBCatchError(query);
     return error || result;
