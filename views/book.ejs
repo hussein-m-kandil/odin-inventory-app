@@ -35,7 +35,9 @@
     </p>
     <p>
       <span><strong>Last modified</strong>:</span>
-      <span><%= book.updated_at %></span>
+      <span>
+        <%=new Date(book.updated_at).toLocaleString("en-GB",{hour12:true})%>
+      </span>
     </p>
     <p>
       <a href="/books/<%= book.book_id %>/edit">Edit</a>

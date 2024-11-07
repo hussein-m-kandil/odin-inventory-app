@@ -45,7 +45,9 @@
           <td><%= book.pages %></td>
           <td><%= book.price %>$</td>
           <td><%= book.stock_count %></td>
-          <td><%= book.updated_at %></td>
+          <td>
+            <%=new Date(book.updated_at).toLocaleString("en-GB",{hour12:true})%>
+          </td>
           <td>
             <a href="/books/<%= book.book_id %>/edit">Edit</a>
             |
