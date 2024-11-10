@@ -13,6 +13,8 @@ const ALL_BOOKS_VIEW = 'index';
 const BOOK_VIEW = 'book';
 const BOOK_FORM_VIEW = 'book-form';
 const EDIT_BOOK_TITLE = 'Edit Book';
+const DELETE_FORM_VIEW = 'delete-form';
+const DELETE_BOOK_TITLE = 'Delete Book';
 const CREATE_BOOK_TITLE = 'Add New Book';
 const BOOK_BASE_COLS = [
   'book',
@@ -202,6 +204,61 @@ module.exports = {
     },
     createBookJoinRows('authors', 'books_authors', 'author_id'),
     createBookJoinRows('genres', 'books_genres', 'genre_id'),
+    (req, res) => {
+      res.redirect(req.baseUrl);
+    },
+  ],
+
+  getDeleteBook: [
+    ...idValidators,
+    queryDB('book', db.readBook, (req) => req.params.id),
+    (req, res, next) => {
+      if (!res.locals.book) {
+        return next(new AppGenericError('No such a book!', 400));
+      } else if (res.locals.book instanceof AppGenericError) {
+        res.locals.book.message = 'Book deletion failed!';
+        return next(res.locals.book);
+      }
+      next();
+    },
+    (req, res) => {
+      res.render(DELETE_FORM_VIEW, {
+        title: DELETE_BOOK_TITLE,
+        item: res.locals.book.book,
+      });
+    },
+  ],
+
+  postDeleteBook: [
+    ...idValidators,
+    queryDB('book', db.readBook, (req) => req.params.id),
+    (req, res, next) => {
+      if (!res.locals.book) {
+        return next(new AppGenericError('No such a book!', 400));
+      } else if (res.locals.book instanceof AppGenericError) {
+        res.locals.book.message = 'Book deletion failed!';
+        return next(res.locals.book);
+      }
+      next();
+    },
+    (req, res, next) => {
+      const { book, book_id } = res.locals.book;
+      Promise.all([
+        db.deleteRowsByWhereClause('books_authors', 'book_id', book_id),
+        db.deleteRowsByWhereClause('books_genres', 'book_id', book_id),
+        db.deleteRowsByWhereClause('books', 'book_id', book_id),
+      ])
+        .then(() => next())
+        .catch((error) => {
+          console.log(error);
+          next(
+            new AppGenericError(
+              `An error occurred while deleting "${book}"!`,
+              500
+            )
+          );
+        });
+    },
     (req, res) => {
       res.redirect(req.baseUrl);
     },
