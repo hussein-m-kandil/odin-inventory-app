@@ -2,6 +2,9 @@ const AppError = require('../errors/app-generic-error.js');
 const populateDB = require('./populate-db.js');
 const pool = require('./pool.js');
 
+const MAX_BOOKS_COUNT = Number(process.env.MAX_BOOKS_COUNT) || 50;
+const MAX_BOOK_INFO_COUNT = Number(process.env.MAX_BOOK_INFO_COUNT) || 100;
+
 const generateGeneralQuery = (where, limit) => {
   return `
     SELECT books.book_id,
@@ -56,11 +59,11 @@ const queryDBCatchError = async (query) => {
       const message =
         error.detail.split('=')[1] ||
         'The given value is already exist while it must be unique!';
-      return [new AppError(message, 400)];
+      return [new AppError(message, 409)];
     } else if (error.code === '23503') {
       // So, it is an foreign_key_violation error
       const message = 'It cannot be deleted because it is in use by a book!';
-      return [new AppError(message, 400)];
+      return [new AppError(message, 409)];
     }
     if (client) {
       await tryCatchLogPromise(async () => await client.query('ROLLBACK'));
@@ -69,6 +72,15 @@ const queryDBCatchError = async (query) => {
   } finally {
     if (client) await tryCatchLogPromise(() => client.release());
   }
+};
+
+const isNotReachMaxTableSize = async (table) => {
+  const maxCount = table === 'books' ? MAX_BOOKS_COUNT : MAX_BOOK_INFO_COUNT;
+  const result = await queryDBCatchError(`SELECT * FROM ${table}`);
+  if (result[1].rowCount >= maxCount) {
+    throw new AppError('The database is full, delete some entries!', 409);
+  }
+  return true;
 };
 
 module.exports = {
@@ -126,18 +138,20 @@ module.exports = {
    * @param {any | any[] | null} values
    */
   async createRow(table, columns, values) {
-    const preparedCols = Array.isArray(columns) ? columns : [columns];
-    const preparedValues = Array.isArray(values) ? values : [values];
-    const params = preparedValues.map((_, i) => `$${i + 1}`);
-    const query = {
-      text: `
-      INSERT INTO ${table} (${preparedCols.join(',')})
-           VALUES (${params.join(',')})
-    `,
-      values: [...preparedValues],
-    };
-    const [error, result] = await queryDBCatchError(query);
-    return error || result;
+    if (await isNotReachMaxTableSize(table)) {
+      const preparedCols = Array.isArray(columns) ? columns : [columns];
+      const preparedValues = Array.isArray(values) ? values : [values];
+      const params = preparedValues.map((_, i) => `$${i + 1}`);
+      const query = {
+        text: `
+        INSERT INTO ${table} (${preparedCols.join(',')})
+              VALUES (${params.join(',')})
+        `,
+        values: [...preparedValues],
+      };
+      const [error, result] = await queryDBCatchError(query);
+      return error || result;
+    }
   },
 
   /**

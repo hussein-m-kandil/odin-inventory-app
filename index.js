@@ -19,15 +19,21 @@ const addUrlToResLocals = (req, res, next) => {
   next();
 };
 
+// eslint-disable-next-line no-unused-vars
 const appErrorHandler = (error, req, res, next) => {
   console.log(error);
-  if (error.name !== AppGenericError.name) {
-    return next();
+  let status, message;
+  if (error instanceof AppGenericError) {
+    status = error.statusCode;
+    message = error.message;
+  } else {
+    status = error.status || error.statusCode || 500;
+    message =
+      status >= 400 && message < 500
+        ? `Cannot ${req.method} ${req.originalUrl}`
+        : 'Something went wrong! Try again later.';
   }
-  res.status(error.statusCode).render('error', {
-    title: 'Error',
-    message: error.message,
-  });
+  res.redirect(`/error?status=${status}&message=${encodeURI(message)}`);
 };
 
 app.set('views', VIEWS_DIR);
@@ -39,6 +45,11 @@ app.use(express.static(PUBLIC_DIR));
 app.use(express.urlencoded({ extended: true }));
 
 app.all('/', (req, res) => res.redirect('/books'));
+app.get('/error', (req, res) => {
+  res
+    .status(Number(req.query.status))
+    .render('error', { title: 'Error', message: req.query.message });
+});
 
 app.use('/books', booksRouter);
 app.use('/(authors|genres|languages)', genericRouter);

@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%- include('partials/meta', { title }) %>
+    <%- include('partials/meta', { title: locals.title ? title : 'Error' }) %>
   </head>
   <body>
-    <p class="error"><%= message %></p>
+    <a href="/">Home</a>
+    <p class="error">
+      <%= locals.message ? message : 'Oops, something went wrong!' %>
+    </p>
   </body>
 </html>
