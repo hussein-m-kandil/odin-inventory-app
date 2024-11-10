@@ -5,7 +5,7 @@ const pool = require('./pool.js');
 const MAX_BOOKS_COUNT = Number(process.env.MAX_BOOKS_COUNT) || 50;
 const MAX_BOOK_INFO_COUNT = Number(process.env.MAX_BOOK_INFO_COUNT) || 100;
 
-const generateGeneralQuery = (where, limit) => {
+const generateGeneralQuery = (where = '', orderBy = '', limit = '') => {
   return `
     SELECT books.book_id,
             book,
@@ -30,9 +30,10 @@ const generateGeneralQuery = (where, limit) => {
         ON books.book_id = books_genres.book_id
       JOIN genres
         ON books_genres.genre_id = genres.genre_id
-  ${where || ''}
+  ${typeof where === 'string' ? where : ''}
   GROUP BY books.book_id, languages.language, languages.language_id
-  ${limit || ''}
+  ${typeof orderBy === 'string' ? orderBy : ''}
+  ${typeof limit === 'string' ? limit : ''}
 `;
 };
 
@@ -89,17 +90,78 @@ module.exports = {
    */
   async readBook(id) {
     const query = {
-      text: generateGeneralQuery('WHERE books.book_id = $1', 'LIMIT 1'),
+      text: generateGeneralQuery('WHERE books.book_id = $1', null, 'LIMIT 1'),
       values: [id],
     };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows[0];
   },
 
-  async readFilteredBooks(filterTable, filterColumn, filterValue) {
+  /**
+   * Return a list of books filtered with a SQL clauses prepared from the given arguments.
+   * The full SQL filtration clauses, if all arguments in place, could be in the following form: `
+   *   SELECT ... WHERE scopeT1.scopeC1 = scopeV1
+   *      AND ...
+   *      AND filterT1.filterC1 ILIKE '%filterV1%'
+   *       OR ...
+   * ORDER BY orderby1, ...
+   *    LIMIT limit
+   * `
+   *
+   * @param {string[]?} scopeTableDotColArr - ['table.column', ...]
+   * @param {any[]?} scopeValues - Values for scope columns to strict the filtration result
+   * @param {string[]?} filterTableDotColArr - ['table.column', ...]
+   * @param {any[]?} filterValues - Values for filter columns to do case insensitive search with
+   * @param {string[]?} orderByTableDotColArr - ['column', 'column', ...]
+   * @param {boolean?} descOrder - If true, a descending ordered rows will be returned
+   * @param {number?} limit - A number that will be used as the limit of rows in the query
+   */
+  async readFilteredBooks(
+    scopeTableDotColArr,
+    scopeValues,
+    filterTableDotColArr,
+    filterValues,
+    orderByTableDotColArr,
+    descOrder = false,
+    limit = null
+  ) {
+    let values;
+    let paramsCount = 0;
+    let whereClause = '';
+    let orderByClause = '';
+    let limitClause = '';
+    if (Array.isArray(scopeTableDotColArr)) {
+      whereClause += 'WHERE ';
+      whereClause += scopeTableDotColArr
+        .map((tableDotCol) => `${tableDotCol} = $${++paramsCount}`)
+        .join(' AND ');
+      values = [...scopeValues];
+    }
+    if (filterValues) {
+      if (!whereClause) whereClause += 'WHERE ';
+      else whereClause += ' AND ';
+      whereClause += filterTableDotColArr
+        .map((tableDotCol) => `${tableDotCol} ILIKE $${++paramsCount}`)
+        .join(' OR ');
+      if (Array.isArray(values)) {
+        values.push(...filterValues.map((fv) => `%${fv}%`));
+      } else {
+        values = filterValues.map((fv) => `%${fv}%`);
+      }
+    }
+    if (Array.isArray(orderByTableDotColArr)) {
+      orderByClause += 'ORDER BY ';
+      orderByClause += orderByTableDotColArr.join(', ');
+      orderByClause += descOrder ? ' DESC' : '';
+    }
+    if (limit) {
+      limitClause = `LIMIT $${++paramsCount}`;
+      if (Array.isArray(values)) values.push(limit);
+      else values = [limit];
+    }
     const query = {
-      text: generateGeneralQuery(`WHERE ${filterTable}.${filterColumn} = $1`),
-      values: [filterValue],
+      text: generateGeneralQuery(whereClause, orderByClause, limitClause),
+      values,
     };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows;

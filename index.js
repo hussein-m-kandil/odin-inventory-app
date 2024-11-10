@@ -45,6 +45,7 @@ app.use(express.static(PUBLIC_DIR));
 app.use(express.urlencoded({ extended: true }));
 
 app.all('/', (req, res) => res.redirect('/books'));
+app.get('/search', (req, res) => res.redirect(`/books${req.originalUrl}`));
 app.get('/error', (req, res) => {
   res
     .status(Number(req.query.status))

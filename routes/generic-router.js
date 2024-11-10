@@ -10,6 +10,7 @@ router.get('/:id/edit', authorsGenresController.getEdit);
 router.post('/:id/edit', authorsGenresController.postEdit);
 router.get('/:id/delete', authorsGenresController.getDelete);
 router.post('/:id/delete', authorsGenresController.postDelete);
+router.get('/:id/books/search', authorsGenresController.getBooks);
 router.get('/:id/books', authorsGenresController.getBooks);
 
 module.exports = router;

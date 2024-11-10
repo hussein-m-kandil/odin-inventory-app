@@ -3,6 +3,7 @@ const booksController = require('../controllers/books-controller.js');
 
 const router = Router();
 
+router.get('/search', booksController.getSearchResult);
 router.get('/', booksController.getAllBooks);
 router.get('/new', booksController.getCreateBook);
 router.post('/new', booksController.postCreateBook);

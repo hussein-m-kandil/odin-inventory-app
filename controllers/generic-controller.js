@@ -181,11 +181,17 @@ module.exports = {
     ...idValidators,
     readRawByIdFromDB,
     queryDB('books', db.readFilteredBooks, (req, res) => {
+      Object.entries(req.query).forEach(([k, v]) => (res.locals[k] = v));
       res.locals.entityName = firstTextFromUrl(req.baseUrl, true);
-      const table = `${res.locals.entityName}s`;
-      const column = `${res.locals.entityName}_id`;
-      const value = req.params.id;
-      return [table, column, value];
+      return [
+        [`${res.locals.entityName}s.${res.locals.entityName}_id`],
+        [req.params.id],
+        req.query.q ? ['books.book', 'books.isbn'] : null,
+        req.query.q ? [req.query.q, req.query.q] : null,
+        req.query.orderby ? [`books.${req.query.orderby}`] : null,
+        Boolean(req.query.desc_order),
+        null,
+      ];
     }),
     (req, res) => {
       const { entityName, dbResult, books } = res.locals;

@@ -6,6 +6,35 @@
   <body>
     <%-locals.url?.split('/').length > 2 ? include('partials/navbar',{url}):''%>
     <h1><%= title %></h1>
+    <form id="search-filter-form" action="<%= url %>/search">
+      <p>
+        <input
+          type="text"
+          name="q"
+          placeholder="Search by title or ISBN"
+          value="<%= locals.q || '' %>"
+        />
+        <button type="submit" class="btn-sm">Search</button>
+      </p>
+      <p>
+        <strong>Order by:</strong>
+        <input type="radio" name="orderby" id="ob-title" value="book" <%-
+        locals.orderby === 'book' ? 'checked' : '' %> />
+        <label for="ob-title">Title&nbsp;</label>
+        <input type="radio" name="orderby" id="ob-addition" value="created_at"
+        <%-!locals.orderby || locals.orderby === 'created_at'?'checked':''%> />
+        <label for="ob-addition">Addition&nbsp;</label>
+        <input type="radio" name="orderby" id="ob-modification"
+        value="updated_at" <%- locals.orderby === 'updated_at' ? 'checked' : ''
+        %> />
+        <label for="ob-modification">Modification&nbsp;</label>
+        &nbsp; <input type="checkbox" name="desc_order" id="desc-order" <%-
+        locals.desc_order ? 'checked' : '' %> />
+        <label for="desc-order">Descending&nbsp;</label>
+        &nbsp;
+        <button type="submit" class="btn-sm">Reorder</button>
+      </p>
+    </form>
     <p>
       <a href="/authors">Visit authors</a>, <a href="/genres">genres</a>,
       <a href="/languages">languages</a>, or

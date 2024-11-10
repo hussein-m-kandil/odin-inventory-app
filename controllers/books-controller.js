@@ -110,18 +110,32 @@ const createBookJoinRows = (key, table, column) => {
   };
 };
 
+const renderBooks = (req, res) => {
+  const books = res.locals.books;
+  books.forEach((b) => {
+    b.authors = genCommaSepStrList(Object.values(b.authors));
+    b.genres = genCommaSepStrList(Object.values(b.genres));
+  });
+  res.render(ALL_BOOKS_VIEW, { title: ALL_BOOKS_TITLE });
+};
+
 module.exports = {
-  getAllBooks: [
-    queryDB('books', db.readAllBooks),
-    (req, res) => {
-      const books = res.locals.books;
-      books.forEach((b) => {
-        b.authors = genCommaSepStrList(Object.values(b.authors));
-        b.genres = genCommaSepStrList(Object.values(b.genres));
-      });
-      res.render(ALL_BOOKS_VIEW, { title: ALL_BOOKS_TITLE });
-    },
+  getSearchResult: [
+    queryDB('books', db.readFilteredBooks, (req, res) => {
+      Object.entries(req.query).forEach(([k, v]) => (res.locals[k] = v));
+      return [
+        null,
+        null,
+        req.query.q ? ['books.book', 'books.isbn'] : null,
+        req.query.q ? [req.query.q, req.query.q] : null,
+        req.query.orderby ? [`books.${req.query.orderby}`] : null,
+        Boolean(req.query.desc_order),
+      ];
+    }),
+    renderBooks,
   ],
+
+  getAllBooks: [queryDB('books', db.readAllBooks), renderBooks],
 
   getBook: [
     ...idValidators,
