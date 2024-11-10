@@ -87,12 +87,15 @@ const isNotReachMaxTableSize = async (table) => {
 module.exports = {
   /**
    * @param {number | string} id
+   * @param {boolean?} booksOnly - If true, selects from 'books' table only—no join
    */
-  async readBook(id) {
-    const query = {
-      text: generateGeneralQuery('WHERE books.book_id = $1', null, 'LIMIT 1'),
-      values: [id],
-    };
+  async readBook(id, booksOnly = false) {
+    const whereClause = 'WHERE books.book_id = $1';
+    const limitClause = 'LIMIT 1';
+    const text = booksOnly
+      ? `SELECT * FROM books ${whereClause} ${limitClause}`
+      : generateGeneralQuery(whereClause, null, limitClause);
+    const query = { text, values: [id] };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows[0];
   },
@@ -115,6 +118,7 @@ module.exports = {
    * @param {string[]?} orderByTableDotColArr - ['column', 'column', ...]
    * @param {boolean?} descOrder - If true, a descending ordered rows will be returned
    * @param {number?} limit - A number that will be used as the limit of rows in the query
+   * @param {boolean?} booksOnly - If true, selects from 'books' table only—no join
    */
   async readFilteredBooks(
     scopeTableDotColArr,
@@ -123,7 +127,8 @@ module.exports = {
     filterValues,
     orderByTableDotColArr,
     descOrder = false,
-    limit = null
+    limit = null,
+    booksOnly = false
   ) {
     let values;
     let paramsCount = 0;
@@ -159,10 +164,10 @@ module.exports = {
       if (Array.isArray(values)) values.push(limit);
       else values = [limit];
     }
-    const query = {
-      text: generateGeneralQuery(whereClause, orderByClause, limitClause),
-      values,
-    };
+    const text = booksOnly
+      ? `SELECT * FROM books ${whereClause} ${orderByClause} ${limitClause}`
+      : generateGeneralQuery(whereClause, orderByClause, limitClause);
+    const query = { text, values };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows;
   },

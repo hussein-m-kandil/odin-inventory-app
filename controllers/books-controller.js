@@ -10,6 +10,7 @@ const { genCommaSepStrList } = require('../utils/string-formatters.js');
 
 const ALL_BOOKS_TITLE = 'Odin Bookstore Inventory';
 const ALL_BOOKS_VIEW = 'index';
+const BOOKS_TITLE = 'Books';
 const BOOK_VIEW = 'book';
 const BOOK_FORM_VIEW = 'book-form';
 const EDIT_BOOK_TITLE = 'Edit Book';
@@ -25,14 +26,28 @@ const BOOK_BASE_COLS = [
   'language_id',
 ];
 
+const isBooksOnly = (req) => req.baseUrl === '/books';
+
 const multipleDataQueries = [
   queryDB('languages', db.readAllRows, 'languages'),
   queryDB('authors', db.readAllRows, 'authors'),
   queryDB('genres', db.readAllRows, 'genres'),
 ];
 
-const bookInfoQueries = [
+const bookQuery = queryDB('book', db.readBook, (req) => {
+  return [req.params.id, isBooksOnly(req)];
+});
+
+const fullBookOrBookOnlyDataQueries = [
   queryDB('book', db.readBook, (req) => req.params.id),
+  (req, res, next) => {
+    if (res.locals.book) return next();
+    bookQuery(req, res, next);
+  },
+];
+
+const bookInfoQueries = [
+  ...fullBookOrBookOnlyDataQueries,
   ...multipleDataQueries,
 ];
 
@@ -110,8 +125,12 @@ const createBookJoinRows = (key, table, column) => {
   };
 };
 
-const renderBooks = (req, res) => {
-  const books = res.locals.books;
+const renderBooks = (req, res, next) => {
+  const { books } = res.locals;
+  if (books instanceof AppGenericError) return next(books);
+  if (isBooksOnly(req)) {
+    return res.render(ALL_BOOKS_VIEW, { title: BOOKS_TITLE });
+  }
   books.forEach((b) => {
     b.authors = genCommaSepStrList(Object.values(b.authors));
     b.genres = genCommaSepStrList(Object.values(b.genres));
@@ -130,6 +149,8 @@ module.exports = {
         req.query.q ? [req.query.q, req.query.q] : null,
         req.query.orderby ? [`books.${req.query.orderby}`] : null,
         Boolean(req.query.desc_order),
+        null,
+        isBooksOnly(req),
       ];
     }),
     renderBooks,
@@ -137,16 +158,25 @@ module.exports = {
 
   getAllBooks: [queryDB('books', db.readAllBooks), renderBooks],
 
+  getBooks: [
+    queryDB('books', db.readAllRows, 'books', 'created_at'),
+    renderBooks,
+  ],
+
   getBook: [
     ...idValidators,
-    queryDB('book', db.readBook, (req) => req.params.id),
+    ...fullBookOrBookOnlyDataQueries,
     (req, res, next) => {
       const book = res.locals.book;
       if (!book) {
         return next(new AppGenericError('No such a book!', 400));
       }
-      book.authors = genCommaSepStrList(Object.values(book.authors));
-      book.genres = genCommaSepStrList(Object.values(book.genres));
+      book.authors = book.authors
+        ? genCommaSepStrList(Object.values(book.authors))
+        : undefined;
+      book.genres = book.genres
+        ? genCommaSepStrList(Object.values(book.genres))
+        : undefined;
       res.render(BOOK_VIEW);
     },
   ],
@@ -225,7 +255,7 @@ module.exports = {
 
   getDeleteBook: [
     ...idValidators,
-    queryDB('book', db.readBook, (req) => req.params.id),
+    bookQuery,
     (req, res, next) => {
       if (!res.locals.book) {
         return next(new AppGenericError('No such a book!', 400));
@@ -245,7 +275,7 @@ module.exports = {
 
   postDeleteBook: [
     ...idValidators,
-    queryDB('book', db.readBook, (req) => req.params.id),
+    ...fullBookOrBookOnlyDataQueries,
     (req, res, next) => {
       if (!res.locals.book) {
         return next(new AppGenericError('No such a book!', 400));

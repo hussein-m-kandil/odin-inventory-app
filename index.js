@@ -3,6 +3,10 @@ const express = require('express');
 const booksRouter = require('./routes/books-router.js');
 const genericRouter = require('./routes/generic-router.js');
 const AppGenericError = require('./errors/app-generic-error.js');
+const {
+  getAllBooks,
+  getSearchResult,
+} = require('./controllers/books-controller.js');
 
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 const VIEWS_DIR = path.join(process.cwd(), 'views');
@@ -44,13 +48,14 @@ app.use(addUrlToResLocals);
 app.use(express.static(PUBLIC_DIR));
 app.use(express.urlencoded({ extended: true }));
 
-app.all('/', (req, res) => res.redirect('/books'));
-app.get('/search', (req, res) => res.redirect(`/books${req.originalUrl}`));
 app.get('/error', (req, res) => {
   res
     .status(Number(req.query.status))
     .render('error', { title: 'Error', message: req.query.message });
 });
+
+app.get('/', getAllBooks);
+app.get('/search', getSearchResult);
 
 app.use('/books', booksRouter);
 app.use('/(authors|genres|languages)', genericRouter);

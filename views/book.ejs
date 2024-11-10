@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%- include('partials/meta', { title: book }) %>
+    <%- include('partials/meta', { title: book.book }) %>
   </head>
   <body>
     <%-include('partials/navbar',{url:url.split('/').slice(0, -1).join('/')})%>
     <h1><%= book.book %></h1>
     <p>
-      <span><strong>ISBN</strong>:</span><span><%= book.isbn %></span>
+      <span><strong>ISBN</strong>:</span>
+      <span><%= book.isbn %></span>
     </p>
     <p>
       <span><strong>Language</strong>:</span>
-      <span><%= book.language %></span>
+      <span><%= book.language || '?' %></span>
     </p>
     <p>
       <span><strong>Author/s</strong>:</span>
-      <span><%= book.authors %></span>
+      <span><%= book.authors || '?' %></span>
     </p>
     <p>
       <span><strong>Genre/s</strong>:</span>
-      <span><%= book.genres %></span>
+      <span><%= book.genres || '?' %></span>
     </p>
     <p>
       <span><strong>Pages</strong>:</span>

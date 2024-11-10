@@ -4,9 +4,12 @@
     <%- include('partials/meta', { title }) %>
   </head>
   <body>
-    <%-locals.url?.split('/').length > 2 ? include('partials/navbar',{url}):''%>
+    <%- url.length > 1 ? include('partials/navbar', { url }) : '' %>
     <h1><%= title %></h1>
-    <form id="search-filter-form" action="<%= url %>/search">
+    <form
+      id="search-filter-form"
+      action="<%= url.length > 1 ? url : '' %>/search"
+    >
       <p>
         <input
           type="text"
@@ -36,8 +39,9 @@
       </p>
     </form>
     <p>
-      <a href="/authors">Visit authors</a>, <a href="/genres">genres</a>,
-      <a href="/languages">languages</a>, or
+      Take a look at
+      <a href="/books">books</a>, <a href="/authors">authors</a>,
+      <a href="/genres">genres</a>, <a href="/languages">languages</a>, or
       <a href="/books/new">add new book</a>.
     </p>
     <% if (Array.isArray(locals.books) && books.length > 0) { %>
@@ -52,14 +56,18 @@
       <thead>
         <th>ISBN</th>
         <th>Title</th>
+        <% if (books[0].languages) { %>
         <th>Language</th>
+        <% } %> <% if (books[0].authors) { %>
         <th>Author/s</th>
+        <% } %> <% if (books[0].genres) { %>
         <th>Genre/s</th>
+        <% } %>
         <th>Pages</th>
         <th>Price</th>
         <th>Stock</th>
         <th>Last modified</th>
-        <th>Control</th>
+        <th colspan="2">Control</th>
       </thead>
       <tbody>
         <% books.forEach((book) => { %>
@@ -68,18 +76,24 @@
           <td>
             <a href="/books/<%= book.book_id %>"><%= book.book %></a>
           </td>
-          <td><%= book.language %></td>
+          <% if (book.languages) { %>
+          <td><%= book.languages %></td>
+          <% } %> <% if (book.authors) { %>
           <td><%= book.authors %></td>
+          <% } %> <% if (book.genres) { %>
           <td><%= book.genres %></td>
+          <% } %>
           <td><%= book.pages %></td>
           <td><%= book.price %>$</td>
           <td><%= book.stock_count %></td>
           <td>
-            <%=new Date(book.updated_at).toLocaleString("en-GB",{hour12:true})%>
+            <%= new Date(book.updated_at).toLocaleString("hc", { hour12: true,
+            hourCycle: "h12", timeStyle: "short", dateStyle: "medium" }) %>
           </td>
           <td>
             <a href="/books/<%= book.book_id %>/edit">Edit</a>
-            |
+          </td>
+          <td>
             <a href="/books/<%= book.book_id %>/delete">Delete</a>
           </td>
         </tr>
