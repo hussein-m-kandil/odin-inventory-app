@@ -1,5 +1,6 @@
 const { body, param, validationResult } = require('express-validator');
 const { removeHyphens } = require('../utils/string-formatters');
+const db = require('../db/queries.js');
 
 const BOOK_TITLE_MAX = 255;
 const ISBN_MAX = 13;
@@ -30,7 +31,17 @@ module.exports = {
       .isNumeric()
       .withMessage(
         'ISBN can contain numbers only, optionally separated with hyphens!'
-      ),
+      )
+      .custom(async (isbn, { req }) => {
+        if (!isbn) return;
+        const foundBook = await db.readRowByWhereClause('books', 'isbn', isbn);
+        if (foundBook && `${foundBook.book_id}` !== req.params.id) {
+          throw new Error(
+            'ISBN must be unique, but the given is already in use!'
+          );
+        }
+        return true;
+      }),
     body('language_id')
       .trim()
       .isInt()
@@ -39,19 +50,17 @@ module.exports = {
       .trim()
       .isInt({ max: Number.MAX_SAFE_INTEGER })
       .withMessage(
-        `The number of pages is required & must be a whole number less than ${Number.MAX_SAFE_INTEGER}!`
+        'The number of pages is required & must be a valid whole number!'
       ),
     body('price')
       .trim()
-      .isNumeric()
-      .withMessage('A price must be a number!')
-      .customSanitizer((price) => Number.parseFloat(price).toFixed(2)),
+      .customSanitizer((price) => Number(parseFloat(price).toFixed(2)) || '')
+      .isFloat({ gt: 0 })
+      .withMessage('A price must be a positive, non-zero number!'),
     body('stock_count')
       .trim()
       .isInt({ max: Number.MAX_SAFE_INTEGER })
-      .withMessage(
-        `A stock count is required & must be a whole number less than ${Number.MAX_SAFE_INTEGER}`
-      ),
+      .withMessage('A stock count is required & must be a valid whole number!'),
     body('authors')
       .trim()
       .notEmpty()

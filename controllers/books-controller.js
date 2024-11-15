@@ -13,30 +13,63 @@ const ALL_BOOKS_VIEW = 'index';
 const BOOK_VIEW = 'book';
 const BOOK_FORM_VIEW = 'book-form';
 const EDIT_BOOK_TITLE = 'Edit Book';
-// const CREATE_BOOK_TITLE = 'Add New Book';
+const CREATE_BOOK_TITLE = 'Add New Book';
+const BOOK_BASE_COLS = [
+  'book',
+  'isbn',
+  'pages',
+  'price',
+  'stock_count',
+  'language_id',
+];
 
-const bookInfoQueries = [
-  queryDB('book', db.readBook, (req) => req.params.id),
+const multipleDataQueries = [
   queryDB('languages', db.readAllRows, 'languages'),
   queryDB('authors', db.readAllRows, 'authors'),
   queryDB('genres', db.readAllRows, 'genres'),
 ];
 
-const renderFormAgainIfInvalid = (title) => {
+const bookInfoQueries = [
+  queryDB('book', db.readBook, (req) => req.params.id),
+  ...multipleDataQueries,
+];
+
+const injectBookInfoFromChoices = (
+  req,
+  res,
+  book,
+  infoLocalsKey,
+  infoEntityName
+) => {
+  if (req.body[infoLocalsKey]) {
+    const choices = Array.isArray(req.body[infoLocalsKey])
+      ? req.body[infoLocalsKey]
+      : [req.body[infoLocalsKey]];
+    // A book's multi-value field returns from DB as an object: `{ id: value, ... }`
+    const idKey = `${infoEntityName}_id`;
+    const valueKey = infoEntityName;
+    book[infoLocalsKey] = Object.fromEntries(
+      res.locals[infoLocalsKey]
+        .filter((info) => choices.includes(String(info[idKey])))
+        .map((info) => [`${info[idKey]}`, info[valueKey]])
+    );
+  } else {
+    book[infoLocalsKey] = [];
+  }
+};
+
+const renderFormAgainIfInvalid = (title, editing = false) => {
   return (req, res, next) => {
     const validationErrors = validationResult(req);
     if (validationErrors.isEmpty()) {
       next();
     } else {
-      console.log(req.body);
-      const { authors, genres, language_id } = res.locals.book;
       const book = {
         ...req.body,
-        authors,
-        genres,
-        language_id,
-        book_id: req.params.id,
+        book_id: editing ? req.params.id : undefined,
       };
+      injectBookInfoFromChoices(req, res, book, 'authors', 'author');
+      injectBookInfoFromChoices(req, res, book, 'genres', 'genre');
       const errors = validationErrors.array();
       res.render(BOOK_FORM_VIEW, { title, errors, book });
     }
@@ -58,7 +91,10 @@ const deleteBookJoinRows = (table, bookInfoName) => {
 
 const createBookJoinRows = (key, table, column) => {
   return (req, res, next) => {
-    const { id } = req.params;
+    // Get book id based on whether we are now adding or editing a book
+    const id = res.locals.newBook
+      ? res.locals.newBook.rows[0].book_id
+      : req.params.id;
     const values = Array.isArray(req.body[key])
       ? req.body[key]
       : [req.body[key]];
@@ -114,29 +150,15 @@ module.exports = {
     ...idValidators,
     ...bookInfoQueries,
     ...bookValidators,
-    renderFormAgainIfInvalid(EDIT_BOOK_TITLE),
+    renderFormAgainIfInvalid(EDIT_BOOK_TITLE, true),
     queryDB('updateBookResult', db.updateRowsByWhereClause, (req) => {
       const table = 'books';
       const clauseKey = 'book_id';
       const clauseValue = req.params.id;
-      const columns = [
-        'updated_at',
-        'book',
-        'isbn',
-        'pages',
-        'price',
-        'stock_count',
-        'language_id',
-      ];
-      const values = [
-        new Date(),
-        req.body.book,
-        req.body.isbn,
-        req.body.pages,
-        req.body.price,
-        req.body.stock_count,
-        req.body.language_id,
-      ];
+      const columns = [...BOOK_BASE_COLS];
+      const values = BOOK_BASE_COLS.map((col) => req.body[col]);
+      columns.push('updated_at');
+      values.push(new Date());
       return [table, clauseKey, clauseValue, columns, values];
     }),
     deleteBookJoinRows('books_authors', 'authors'),
@@ -144,7 +166,44 @@ module.exports = {
     deleteBookJoinRows('books_genres', 'genres'),
     createBookJoinRows('genres', 'books_genres', 'genre_id'),
     (req, res) => {
-      res.redirect('/');
+      res.redirect(req.baseUrl);
+    },
+  ],
+
+  getCreateBook: [
+    ...multipleDataQueries,
+    (req, res) => {
+      res.render(BOOK_FORM_VIEW, { title: CREATE_BOOK_TITLE });
+    },
+  ],
+
+  postCreateBook: [
+    ...multipleDataQueries,
+    ...bookValidators,
+    renderFormAgainIfInvalid(CREATE_BOOK_TITLE),
+    queryDB('addBookResult', db.createRow, (req) => {
+      const table = 'books';
+      const columns = [...BOOK_BASE_COLS];
+      const values = BOOK_BASE_COLS.map((col) => req.body[col]);
+      return [table, columns, values];
+    }),
+    async (req, res, next) => {
+      if (res.locals.addBookResult instanceof AppGenericError) {
+        res.locals.addBookResult.message = 'Book addition failed!';
+        return next(res.locals.addBookResult);
+      }
+      res.locals.newBook = await db.readLastAddedBook();
+      if (res.locals.newBook instanceof AppGenericError) {
+        res.locals.newBook.message =
+          'Unexpected Error: The Admin need to remove last added book entry and retry adding it!';
+        return next(res.locals.newBook);
+      }
+      next();
+    },
+    createBookJoinRows('authors', 'books_authors', 'author_id'),
+    createBookJoinRows('genres', 'books_genres', 'genre_id'),
+    (req, res) => {
+      res.redirect(req.baseUrl);
     },
   ],
 };

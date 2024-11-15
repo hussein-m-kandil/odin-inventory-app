@@ -28,21 +28,21 @@ path)?.msg) || '' %>
             checkbox.type = 'checkbox';
             checkbox.value = option.value;
             checkboxes.appendChild(li).append(label, checkbox);
-          } else {
-            const error = document.createElement('div');
-            error.className = 'error';
-            error.textContent = 'This choice has already been made!';
-            trigger.insertAdjacentElement('afterend', error);
-            setTimeout(() => error.remove(), 2000);
           }
         }
+        trigger.scrollIntoView();
       }
     </script>
   </head>
   <body>
     <%- include('partials/navbar', { url }) %>
     <h1><%= title %></h1>
-    <form action="/books/<%= book['book_id'] %>/edit" method="post">
+    <form action="<%= url %>" method="post">
+      <p>
+        <span class="error">*</span>
+        All fields are required and a book must have at least one author and one
+        genre!
+      </p>
       <p>
         <label for="title"><strong>Title:</strong></label>
         <input
@@ -94,7 +94,7 @@ path)?.msg) || '' %>
         <label for="language"><strong>Language:</strong></label>
         <select name="language_id" id="language">
           <% languages.forEach(({language_id, language}) => { %>
-          <%if(book.language_id === language_id){%>
+          <%if(locals.book?.language_id === language_id){%>
           <option selected value="<%= language_id %>"><%= language %></option>
           <%}else{%>
           <option value="<%= language_id %>"><%= language %></option>
@@ -108,7 +108,8 @@ path)?.msg) || '' %>
       </p>
       <div class="error"><%= findErrMsg("authors") %></div>
       <ul id="book-authors" aria-labelledby="book-authors-title">
-        <%Object.entries(locals.book?.authors||{}).forEach(([id,author])=>{%>
+        <% if (locals.book?.authors) { %>
+        <%Object.entries(book.authors).forEach(([id,author])=>{%>
         <li>
           <label for="author-<%= id %>"><%= author %></label>
           <input
@@ -119,14 +120,15 @@ path)?.msg) || '' %>
             checked
           />
         </li>
-        <% }) %>
+        <% }) %> <% }%>
       </ul>
       <p id="book-genres-title">
         <strong>Genre/s:</strong>
       </p>
       <div class="error"><%= findErrMsg("genres") %></div>
       <ul id="book-genres" aria-labelledby="book-genres-title">
-        <% Object.entries(locals.book?.genres || {}).forEach(([id, genre])=>{%>
+        <% if (locals.book?.genres) { %>
+        <%Object.entries(book.genres).forEach(([id, genre])=>{%>
         <li>
           <label for="genre-<%= id %>"><%= genre %></label>
           <input
@@ -137,7 +139,7 @@ path)?.msg) || '' %>
             checked
           />
         </li>
-        <% }) %>
+        <% }) %> <% } %>
       </ul>
       <button type="submit">Submit</button>
     </form>

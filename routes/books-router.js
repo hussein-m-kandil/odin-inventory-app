@@ -4,8 +4,8 @@ const booksController = require('../controllers/books-controller.js');
 const router = Router();
 
 router.get('/', booksController.getAllBooks);
-// router.get('/new', booksController.getCreateBook);
-// router.post('/new', booksController.postCreateBook);
+router.get('/new', booksController.getCreateBook);
+router.post('/new', booksController.postCreateBook);
 router.get('/:id/edit', booksController.getEditBook);
 router.post('/:id/edit', booksController.postEditBook);
 // router.get('/:id/delete', booksController.getDeleteBook);

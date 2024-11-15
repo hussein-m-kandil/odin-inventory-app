@@ -33,9 +33,22 @@ const generateGeneralQuery = (where, limit) => {
 `;
 };
 
-const queryDBCatchError = async (query) => {
+const tryCatchLogPromise = async (fn) => {
   try {
-    return [null, await pool.query(query)];
+    await fn();
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const queryDBCatchError = async (query) => {
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const result = await client.query(query);
+    await client.query('COMMIT');
+    return [null, result];
   } catch (error) {
     console.log(error);
     if (error.code === '23505') {
@@ -49,7 +62,12 @@ const queryDBCatchError = async (query) => {
       const message = 'It cannot be deleted because it is in use by a book!';
       return [new AppError(message, 400)];
     }
+    if (client) {
+      await tryCatchLogPromise(async () => await client.query('ROLLBACK'));
+    }
     throw new AppError('Oops, something went wrong! Try again later.', 500);
+  } finally {
+    if (client) await tryCatchLogPromise(() => client.release());
   }
 };
 
@@ -73,6 +91,14 @@ module.exports = {
     };
     const [error, result] = await queryDBCatchError(query);
     return error || result.rows;
+  },
+
+  async readLastAddedBook() {
+    const query = {
+      text: 'SELECT * FROM books ORDER BY created_at DESC LIMIT 1',
+    };
+    const [error, result] = await queryDBCatchError(query);
+    return error || result;
   },
 
   async readAllBooks() {
@@ -171,9 +197,9 @@ module.exports = {
     }
     const query = {
       text: `
-      UPDATE ${table}
-         SET ${columnParamStrPairs.join(', ')}
-       WHERE ${clauseKey} = $${paramCount}
+         UPDATE ${table}
+            SET ${columnParamStrPairs.join(', ')}
+          WHERE ${clauseKey} = $${paramCount}
       `,
       values: Array.isArray(values)
         ? values.concat(clauseValue)
