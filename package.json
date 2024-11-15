@@ -2,12 +2,15 @@
   "name": "odin-inventory-app",
   "version": "1.0.0",
   "description": "An Inventory management app for an imaginary store. Developed as part of the Node.js course at The Odin Project.",
-  "main": "index.js",
+  "main": "api/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "node --env-file=.env --watch index.js",
-    "lint": "eslint ."
+    "start": "node api/index.js",
+    "dev": "node --env-file=.env --watch api/index.js",
+    "lint": "eslint .",
+    "vercel:dev": "[ -f .env.vercel ] && export $(cat .env.vercel) && vercel dev --listen 3000",
+    "vercel:deploy": "vercel",
+    "vercel:production": "vercel --prod"
   },
   "repository": {
     "type": "git",
@@ -39,6 +42,7 @@
     "@eslint/js": "^9.13.0",
     "@stylistic/eslint-plugin-js": "^2.9.0",
     "eslint": "^9.13.0",
-    "globals": "^15.11.0"
+    "globals": "^15.11.0",
+    "vercel": "^39.0.2"
   }
 }

@@ -8,8 +8,8 @@ const {
   getSearchResult,
 } = require('./controllers/books-controller.js');
 
-const PUBLIC_DIR = path.join(process.cwd(), 'public');
-const VIEWS_DIR = path.join(process.cwd(), 'views');
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const VIEWS_DIR = path.join(__dirname, 'views');
 
 const app = express();
 
@@ -62,5 +62,9 @@ app.use('/(authors|genres|languages)', genericRouter);
 
 app.use(appErrorHandler);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Running on port ${PORT}`));
+if (!process.env.SERVERLESS_FUNCTION) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Running on port ${PORT}`));
+}
+
+module.exports = app;
